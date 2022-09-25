@@ -46,57 +46,10 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
         print("    Datasize: " + str(data_sizes[csv["DataOrg"]]))
         print("    Category: " + category)
 
-        #xdf
-        table_def = {
-            "title": csv["IdName"],
-            "description": csv["Name"],
-            "category": "OLS",
-            "category1": category,
-            "z": {
-                "min": "",
-                "max": "",
-                "address": hex(int(csv["Fieldvalues.StartAddr"].lstrip("$"), base=16)),
-                "dataSize": data_sizes[csv["DataOrg"]],
-                "units": xdfOut.fix_degree(csv["Fieldvalues.Unit"]),
-                "math": "(X * " + csv["Fieldvalues.Factor"] + ") + " + csv["Fieldvalues.Offset"],
-                "flags": "0x02",
-                "columns": csv["Columns"]
-            },
-        }
-
-        if csv["AxisX.DataAddr"].lstrip("$") != "0":
-            table_def["x"] = {
-                "name": "x",
-                "units": xdfOut.fix_degree(csv["AxisX.Unit"]),
-                "min": "",
-                "max": "",
-                "address": hex(int(csv["AxisX.DataAddr"].lstrip("$"), base=16)),
-                "length": csv["Columns"],
-                "dataSize": data_sizes[csv["AxisX.DataOrg"]],
-                "math": "(X * " + csv["AxisX.Factor"] + ") + " + csv["AxisX.Offset"],
-                "flags": "0x02"
-            }
-            table_def["z"]["length"] = table_def["x"]["length"]
-            print("    Axis X: " + str(table_def["x"]["length"]))
-                
-        if csv["AxisY.DataAddr"].lstrip("$") != "0":
-            table_def["y"] = {
-                "name": "y",
-                "units": xdfOut.fix_degree(csv["AxisY.Unit"]),
-                "min": "",
-                "max": "",
-                "address": hex(int(csv["AxisY.DataAddr"].lstrip("$"), base=16)),
-                "length": csv["Rows"],
-                "dataSize": data_sizes[csv["AxisY.DataOrg"]],
-                "math": "(X * " + csv["AxisY.Factor"] + ") + " + csv["AxisY.Offset"],
-                "flags": "0x02"
-            }
-            table_def["z"]["rows"] = table_def["y"]["length"]
-            print("    Axis Y: " + str(table_def["y"]["length"]))
-
-        xdfOut.table_with_root(table_def)
-
-        #xml
+        #build table data
+        offset = float(csv["Fieldvalues.Offset"])
+        negative = False if offset >= 0.0 else True
+        offset = abs(offset)
         table_def = {
             "title": csv["IdName"],
             "description": csv["Name"],
@@ -106,45 +59,54 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "max": "",
                 "address": hex(int(csv["Fieldvalues.StartAddr"].lstrip("$"), base=16)),
                 "dataSize": data_sizes[csv["DataOrg"]],
-                "units": xmlOut.fix_degree(csv["Fieldvalues.Unit"]),
-                "math": "(X * " + csv["Fieldvalues.Factor"] + ") + " + csv["Fieldvalues.Offset"],
-                "math2": "(X / " + csv["Fieldvalues.Factor"] + ") - " + csv["Fieldvalues.Offset"],
-                "order": "cr"
+                "signed": False if csv["bSigned"] == "0" else True,
+                "units": xdfOut.fix_degree(csv["Fieldvalues.Unit"]),
+                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["Fieldvalues.Factor"] + " - (0.0 * X))",
+                "order": "cr",
+                "flags": hex(2 + (0 if csv["bSigned"] == "0" else 1)),
+                "columns": csv["Columns"]
             },
         }
 
-        if csv["AxisX.DataAddr"].lstrip("$") != "":
-            axis_def = {
+        if csv["AxisX.DataAddr"].lstrip("$") != "0":
+            offset = float(csv["AxisX.Offset"])
+            negative = False if offset >= 0.0 else True
+            offset = abs(offset)
+            table_def["x"] = {
                 "name": "x",
-                "units": xmlOut.fix_degree(csv["AxisX.Unit"]),
+                "units": xdfOut.fix_degree(csv["AxisX.Unit"]),
                 "min": "",
                 "max": "",
                 "address": hex(int(csv["AxisX.DataAddr"].lstrip("$"), base=16)),
                 "length": csv["Columns"],
                 "dataSize": data_sizes[csv["AxisX.DataOrg"]],
-                "math": "(X * " + csv["AxisX.Factor"] + ") + " + csv["AxisX.Offset"],
-                "math2": "(X / " + csv["AxisX.Factor"] + ") - " + csv["AxisX.Offset"]
+                "signed": False if csv["AxisX.bSigned"] == "0" else True,
+                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisX.Factor"] + " - (0.0 * X))",
+                "flags": hex(2 + (0 if csv["AxisX.bSigned"] == "0" else 1))
             }
-            table_def["x"] = axis_def
             table_def["z"]["length"] = table_def["x"]["length"]
-            table_def["description"] += f'|X: {table_def["x"]["name"]}'
-
-        if csv["AxisY.DataAddr"].lstrip("$") != "":
-            axis_def = {
+            print("    Axis X: " + str(table_def["x"]["length"]))
+                
+        if csv["AxisY.DataAddr"].lstrip("$") != "0":
+            offset = float(csv["AxisY.Offset"])
+            negative = False if offset >= 0.0 else True
+            offset = abs(offset)
+            table_def["y"] = {
                 "name": "y",
-                "units": xmlOut.fix_degree(csv["AxisY.Unit"]),
+                "units": xdfOut.fix_degree(csv["AxisY.Unit"]),
                 "min": "",
                 "max": "",
-                "address":  hex(int(csv["AxisY.DataAddr"].lstrip("$"), base=16)),
+                "address": hex(int(csv["AxisY.DataAddr"].lstrip("$"), base=16)),
                 "length": csv["Rows"],
                 "dataSize": data_sizes[csv["AxisY.DataOrg"]],
-                "math": "(X * " + csv["AxisY.Factor"] + ") + " + csv["AxisY.Offset"],
-                "math2": "(X / " + csv["AxisY.Factor"] + ") - " + csv["AxisY.Offset"]
+                "signed": False if csv["AxisY.bSigned"] == "0" else True,
+                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisY.Factor"] + " - (0.0 * X))",
+                "flags": hex(2 + (0 if csv["AxisY.bSigned"] == "0" else 1))
             }
-            table_def["y"] = axis_def
-            table_def["description"] += f'|Y: {table_def["y"]["name"]}'
             table_def["z"]["rows"] = table_def["y"]["length"]
+            print("    Axis Y: " + str(table_def["y"]["length"]))
 
+        xdfOut.table_with_root(table_def)
         xmlOut.table_with_root(table_def)
 
 xdfOut.write(f"{argv[2]}.xdf")

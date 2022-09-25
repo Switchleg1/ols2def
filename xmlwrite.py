@@ -4,6 +4,12 @@ import decimal
 import xml.etree.ElementTree as ET
 
 data_sizes = {
+    1: 'int8',
+    2: 'int16',
+    4: 'float',
+}
+
+data_sizes_u = {
     1: 'uint8',
     2: 'uint16',
     4: 'float',
@@ -65,9 +71,9 @@ class XMLWrite:
 
         data = ET.SubElement(table,"data")
         data.set("offset","#"+table_def['z']['address'].lstrip("0x"))
-        data.set("storagetype",str(data_sizes[table_def['z']["dataSize"]]))
-        data.set("func_2val",table_def['z']['math'])
-        data.set("func_val2",table_def['z']['math2'])
+        data.set("storagetype",str(data_sizes[table_def['z']["dataSize"]] if table_def['z']["signed"] else data_sizes_u[table_def['z']["dataSize"]]))
+        data.set("func_2val",self.build_equation(table_def['z']['math'], False))
+        data.set("func_val2",self.build_equation(table_def['z']['math'], True))
         data.set("format","%0.2f")
         data.set("metric",table_def['z']['units'])
         data.set("min",str(table_def['z']['min']))
@@ -78,9 +84,9 @@ class XMLWrite:
             rows = ET.SubElement(table,"cols")
             rows.set("count",str(table_def['x']['length']))
             rows.set("offset","#"+table_def['x']['address'].lstrip("0x"))
-            rows.set("storagetype",str(data_sizes[table_def['x']["dataSize"]]))
-            rows.set("func_2val",table_def['x']['math'])
-            rows.set("func_val2",table_def['x']['math2'])
+            rows.set("storagetype",str(data_sizes[table_def['x']["dataSize"]] if table_def['x']["signed"] else data_sizes_u[table_def['x']["dataSize"]]))
+            data.set("func_2val",self.build_equation(table_def['x']['math'], False))
+            data.set("func_val2",self.build_equation(table_def['x']['math'], True))
             rows.set("format","%0.2f")
             rows.set("metric",table_def['x']['units'])
 
@@ -89,9 +95,9 @@ class XMLWrite:
             cols = ET.SubElement(table,"rows")
             cols.set("count",str(table_def['y']['length']))
             cols.set("offset","#"+table_def['y']['address'].lstrip("0x"))
-            cols.set("storagetype",str(data_sizes[table_def['y']["dataSize"]]))
-            cols.set("func_2val",table_def['y']['math'])
-            cols.set("func_val2",table_def['y']['math2'])
+            cols.set("storagetype",str(data_sizes[table_def['y']["dataSize"]] if table_def['y']["signed"] else data_sizes_u[table_def['y']["dataSize"]]))
+            data.set("func_2val",self.build_equation(table_def['y']['math'], False))
+            data.set("func_val2",self.build_equation(table_def['y']['math'], True))
             cols.set("format","%0.2f")
             cols.set("metric",table_def['y']['units'])
   

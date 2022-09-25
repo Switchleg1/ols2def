@@ -117,12 +117,7 @@ class XDFWrite:
         title.text = table_def["title"]
         description = ET.SubElement(table, "description")
         description.text = table_def["description"]
-        table_categories = [table_def["category"]]
-        if "category1" in table_def:
-            table_categories.append(table_def["category1"])
-        if "category2" in table_def:
-            table_categories.append(table_def["category2"])
-        self.add_table_categories(table, table_categories)
+        self.add_table_categories(table, table_def["category"])
 
         if "x" in table_def:
             self.axis_with_table(table, "x", table_def["x"])
