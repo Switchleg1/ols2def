@@ -77,7 +77,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "dataSize": data_sizes[csv["DataOrg"]],
                 "signed": False if csv["bSigned"] == "0" else True,
                 "units": xdfOut.fix_degree(csv["Fieldvalues.Unit"]),
-                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["Fieldvalues.Factor"] + " - (0.0 * X))",
+                "math": "X * " + str(float(csv["Fieldvalues.Factor"])) + str(" - " if negative else " + ") + str(offset),
                 "order": "cr",
                 "flags": hex(data_endian[csv["DataOrg"]] + (0 if csv["bSigned"] == "0" else 1)),
                 "columns": csv["Columns"]
@@ -97,7 +97,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "length": csv["Columns"],
                 "dataSize": data_sizes[csv["AxisX.DataOrg"]],
                 "signed": False if csv["AxisX.bSigned"] == "0" else True,
-                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisX.Factor"] + " - (0.0 * X))",
+                "math": "X * " + str(float(csv["AxisX.Factor"])) + str(" - " if negative else " + ") + str(offset),
                 "flags": hex(data_endian[csv["AxisX.DataOrg"]] + (0 if csv["AxisX.bSigned"] == "0" else 1))
             }
             table_def["z"]["length"] = table_def["x"]["length"]
@@ -116,7 +116,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "length": csv["Rows"],
                 "dataSize": data_sizes[csv["AxisY.DataOrg"]],
                 "signed": False if csv["AxisY.bSigned"] == "0" else True,
-                "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisY.Factor"] + " - (0.0 * X))",
+                "math": "X * " + str(float(csv["AxisX.Factor"])) + str(" - " if negative else " + ") + str(offset),
                 "flags": hex(data_endian[csv["AxisY.DataOrg"]] + (0 if csv["AxisY.bSigned"] == "0" else 1))
             }
             table_def["z"]["rows"] = table_def["y"]["length"]

@@ -85,8 +85,8 @@ class XMLWrite:
             rows.set("count",str(table_def['x']['length']))
             rows.set("offset","#"+table_def['x']['address'].lstrip("0x"))
             rows.set("storagetype",str(data_sizes[table_def['x']["dataSize"]] if table_def['x']["signed"] else data_sizes_u[table_def['x']["dataSize"]]))
-            data.set("func_2val",self.build_equation(table_def['x']['math'], False))
-            data.set("func_val2",self.build_equation(table_def['x']['math'], True))
+            rows.set("func_2val",self.build_equation(table_def['x']['math'], False))
+            rows.set("func_val2",self.build_equation(table_def['x']['math'], True))
             rows.set("format","%0.2f")
             rows.set("metric",table_def['x']['units'])
 
@@ -96,8 +96,8 @@ class XMLWrite:
             cols.set("count",str(table_def['y']['length']))
             cols.set("offset","#"+table_def['y']['address'].lstrip("0x"))
             cols.set("storagetype",str(data_sizes[table_def['y']["dataSize"]] if table_def['y']["signed"] else data_sizes_u[table_def['y']["dataSize"]]))
-            data.set("func_2val",self.build_equation(table_def['y']['math'], False))
-            data.set("func_val2",self.build_equation(table_def['y']['math'], True))
+            cols.set("func_2val",self.build_equation(table_def['y']['math'], False))
+            cols.set("func_val2",self.build_equation(table_def['y']['math'], True))
             cols.set("format","%0.2f")
             cols.set("metric",table_def['y']['units'])
   
@@ -112,52 +112,22 @@ class XMLWrite:
     def fix_degree(self, bad_string):
         return re.sub("\uFFFD", "\u00B0", bad_string)  # Replace Unicode "unknown" with degree sign
 
-    def coefficients_to_equation(self, coefficients, inverse):
-        a, b, c, d, e, f = (
-            self.float_to_str(coefficients["a"]),
-            self.float_to_str(coefficients["b"]),
-            self.float_to_str(coefficients["c"]),
-            self.float_to_str(coefficients["d"]),
-            self.float_to_str(coefficients["e"]),
-            self.float_to_str(coefficients["f"]),
-        )
-
+    def coefficients_to_equation(self, fa, fb, inverse):
         s1 = '+'
         s2 = '-'
-        if c[0] == '-':
-            c = c[1:]
+        if fb[0] == '-':
+            b = fb[1:]
             s1 = '-'
             s2 = '+'
         
         operation = ""
         if inverse is True:
-            operation = f"({b} * ([x] / {f})) {s1} {c}"
+            operation = f"([x] {s1} {fb}) / {fa}"
         else:  
-            operation = f"(({f} * [x]) {s2} {c}) / {b}"
+            operation = f"[x] * {fa} {s2} {fb}"
         
-        if a == "0.0" and d == "0.0" and e=="0.0" and f!="0.0":  # Polynomial is of order 1, ie linear original: f"(({f} * [x]) - {c} ) / ({b} - ({e} * [x]))"
-            return operation
-        else:
-            return "Cannot handle polynomial ratfunc because we do not know how to invert!"
-
+        return operation
+        
     def build_equation(self, s, inv):
-        p = re.compile("\d+\.\d+")
-        l = p.findall(s)
-        ce = {
-            "a": 0.0,
-            "b": float(l[2]),
-            "c": float(l[1]),
-            "d": 0.0,
-            "e": 0.0,
-            "f": float(l[0])
-        }
-        return self.coefficients_to_equation(ce, inv)
-
-    def float_to_str(self, f):
-        """
-        Convert the given float to a string,
-        without resorting to scientific notation
-        """
-        d1 = self.ctx.create_decimal(repr(f))
-        return format(d1, 'f')
-
+        l = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", s)
+        return self.coefficients_to_equation(l[0], l[1], inv)
