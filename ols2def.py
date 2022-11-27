@@ -21,11 +21,27 @@ DEF_CATEGORY_OFFSET = 0x0
 DEF_TITLE = argv[5]
 
 data_sizes = {
-    "eBitLoHi": 2,
     "eByte": 1,
+    "eBitHILo": 2,
+    "eBitLoHi": 2,
+    "eFloatHiLo": 4,
     "eFloatLoHi": 4,
+    "eHiLo": 2,
     "eLoHi": 2,
+    "eHiLoHiLo": 4,
     "eLoHiLoHi": 4,
+}
+
+data_endian = {
+    "eByte": 0,
+    "eBitHILo": 0,
+    "eBitLoHi": 2,
+    "eFloatHiLo": 0,
+    "eFloatLoHi": 2,
+    "eHiLo": 0,
+    "eLoHi": 2,
+    "eHiLoHiLo": 0,
+    "eLoHiLoHi": 2,
 }
 
 # Begin
@@ -63,7 +79,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "units": xdfOut.fix_degree(csv["Fieldvalues.Unit"]),
                 "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["Fieldvalues.Factor"] + " - (0.0 * X))",
                 "order": "cr",
-                "flags": hex(2 + (0 if csv["bSigned"] == "0" else 1)),
+                "flags": hex(data_endian[csv["DataOrg"]] + (0 if csv["bSigned"] == "0" else 1)),
                 "columns": csv["Columns"]
             },
         }
@@ -82,7 +98,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "dataSize": data_sizes[csv["AxisX.DataOrg"]],
                 "signed": False if csv["AxisX.bSigned"] == "0" else True,
                 "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisX.Factor"] + " - (0.0 * X))",
-                "flags": hex(2 + (0 if csv["AxisX.bSigned"] == "0" else 1))
+                "flags": hex(data_endian[csv["AxisX.DataOrg"]] + (0 if csv["AxisX.bSigned"] == "0" else 1))
             }
             table_def["z"]["length"] = table_def["x"]["length"]
             print("    Axis X: " + str(table_def["x"]["length"]))
@@ -101,7 +117,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
                 "dataSize": data_sizes[csv["AxisY.DataOrg"]],
                 "signed": False if csv["AxisY.bSigned"] == "0" else True,
                 "math": "((1.0 * X)" + str(" - " if negative else " + ") + str(offset) + ") / (" + csv["AxisY.Factor"] + " - (0.0 * X))",
-                "flags": hex(2 + (0 if csv["AxisY.bSigned"] == "0" else 1))
+                "flags": hex(data_endian[csv["AxisY.DataOrg"]] + (0 if csv["AxisY.bSigned"] == "0" else 1))
             }
             table_def["z"]["rows"] = table_def["y"]["length"]
             print("    Axis Y: " + str(table_def["y"]["length"]))
