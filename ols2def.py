@@ -22,7 +22,7 @@ DEF_TITLE = argv[5]
 
 data_sizes = {
     "eByte": 1,
-    "eBitHILo": 2,
+    "eBitHiLo": 2,
     "eBitLoHi": 2,
     "eFloatHiLo": 4,
     "eFloatLoHi": 4,
@@ -30,11 +30,12 @@ data_sizes = {
     "eLoHi": 2,
     "eHiLoHiLo": 4,
     "eLoHiLoHi": 4,
+    "eDataOrgNone": 1,
 }
 
 data_endian = {
     "eByte": 0,
-    "eBitHILo": 0,
+    "eBitHiLo": 0,
     "eBitLoHi": 2,
     "eFloatHiLo": 0,
     "eFloatLoHi": 2,
@@ -42,6 +43,7 @@ data_endian = {
     "eLoHi": 2,
     "eHiLoHiLo": 0,
     "eLoHiLoHi": 2,
+    "eDataOrgNone": 0,
 }
 
 # Begin
@@ -84,7 +86,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
             },
         }
 
-        if csv["AxisX.DataAddr"].lstrip("$") != "0":
+        if csv["AxisX.DataAddr"].lstrip("$") != "0" or int(csv["Columns"]) > 1:
             offset = float(csv["AxisX.Offset"])
             negative = False if offset >= 0.0 else True
             offset = abs(offset)
@@ -103,7 +105,7 @@ with open(argv[1], encoding="utf-8-sig", errors='ignore') as olsFile:
             table_def["z"]["length"] = table_def["x"]["length"]
             print("    Axis X: " + str(table_def["x"]["length"]))
                 
-        if csv["AxisY.DataAddr"].lstrip("$") != "0":
+        if csv["AxisY.DataAddr"].lstrip("$") != "0" or int(csv["Rows"]) > 1:
             offset = float(csv["AxisY.Offset"])
             negative = False if offset >= 0.0 else True
             offset = abs(offset)
